@@ -6,6 +6,8 @@ Genera modelos 3D con mallas poligonales limpias (.GLB) y texturas PBR completas
 
 import os
 os.environ['SPCONV_ALGO'] = 'native'
+os.environ['ATTN_BACKEND'] = 'xformers'
+os.environ['SPARSE_ATTN_BACKEND'] = 'xformers'
 
 import io
 import time

@@ -5,6 +5,8 @@ ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     PIP_PREFER_BINARY=1 \
     SPCONV_ALGO=native \
+    ATTN_BACKEND=xformers \
+    SPARSE_ATTN_BACKEND=xformers \
     TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 9.0+PTX"
 
 WORKDIR /app
@@ -55,6 +57,9 @@ RUN pip install --no-cache-dir git+https://github.com/EasternJournalist/utils3d.
 
 # spconv para convoluciones dispersas en VRAM
 RUN pip install --no-cache-dir spconv-cu120
+
+# xformers (aceleración de atención para TRELLIS)
+RUN pip install --no-cache-dir xformers==0.0.27.post2 --index-url https://download.pytorch.org/whl/cu121
 
 # kaolin (NVIDIA) para extracción y rasterización de mallas
 RUN pip install --no-cache-dir kaolin -f https://nvidia-kaolin.s3.us-east-2.amazonaws.com/torch-2.4.0_cu121.html

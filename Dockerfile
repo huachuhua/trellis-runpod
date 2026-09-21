@@ -5,7 +5,7 @@ ENV PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive \
     PIP_PREFER_BINARY=1 \
     SPCONV_ALGO=native \
-    TORCH_CUDA_ARCH_LIST="8.0;8.6;8.9;9.0"
+    TORCH_CUDA_ARCH_LIST="8.0 8.6 8.9 9.0+PTX"
 
 WORKDIR /app
 
@@ -27,6 +27,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # 2. Instalar dependencias base de Python y utilidades 3D
 RUN pip install --no-cache-dir \
+    setuptools \
+    wheel \
+    ninja \
     pillow \
     imageio \
     imageio-ffmpeg \
@@ -34,7 +37,6 @@ RUN pip install --no-cache-dir \
     easydict \
     opencv-python-headless \
     scipy \
-    ninja \
     rembg \
     onnxruntime \
     trimesh \
@@ -59,17 +61,17 @@ RUN pip install --no-cache-dir kaolin -f https://nvidia-kaolin.s3.us-east-2.amaz
 
 # nvdiffrast (NVIDIA Differentiable Rasterizer)
 RUN git clone https://github.com/NVlabs/nvdiffrast.git /tmp/nvdiffrast && \
-    pip install --no-cache-dir /tmp/nvdiffrast && \
+    pip install --no-cache-dir --no-build-isolation /tmp/nvdiffrast && \
     rm -rf /tmp/nvdiffrast
 
 # diffoctreerast
 RUN git clone --recurse-submodules https://github.com/JeffreyXiang/diffoctreerast.git /tmp/diffoctreerast && \
-    pip install --no-cache-dir /tmp/diffoctreerast && \
+    pip install --no-cache-dir --no-build-isolation /tmp/diffoctreerast && \
     rm -rf /tmp/diffoctreerast
 
 # diff-gaussian-rasterization (para 3D Gaussian Splatting)
 RUN git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting && \
-    pip install --no-cache-dir /tmp/mip-splatting/submodules/diff-gaussian-rasterization/ && \
+    pip install --no-cache-dir --no-build-isolation /tmp/mip-splatting/submodules/diff-gaussian-rasterization/ && \
     rm -rf /tmp/mip-splatting
 
 # 4. Clonar el repositorio oficial de Microsoft TRELLIS

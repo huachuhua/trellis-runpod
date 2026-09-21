@@ -144,7 +144,7 @@ def handler(job):
         return {
             "status": "success",
             "engine": "trellis",
-            "pbr": true,
+            "pbr": True,
             "ply_base64": base64.b64encode(ply_bytes).decode("utf-8") if ply_bytes else None,
             "glb_base64": base64.b64encode(glb_bytes).decode("utf-8") if glb_bytes else None,
             "ply_size_bytes": len(ply_bytes) if ply_bytes else 0,

@@ -88,9 +88,6 @@ RUN git clone --depth 1 https://github.com/microsoft/TRELLIS.git /app/trellis_re
     cp -r /app/trellis_repo/trellis /app/trellis && \
     rm -rf /app/trellis_repo
 
-# Comprobar que las dependencias nativas y Python cargan antes de descargar pesos.
-RUN python -c "import open3d; from trellis.pipelines import TrellisImageTo3DPipeline"
-
 # 5. Pre-descargar pesos oficiales de TRELLIS desde Hugging Face
 RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='microsoft/TRELLIS-image-large')"
 

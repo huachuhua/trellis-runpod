@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-dev \
     libglib2.0-0 \
     libgomp1 \
+    libusb-1.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
@@ -50,6 +51,9 @@ RUN pip install --no-cache-dir \
     transformers \
     runpod \
     huggingface_hub
+
+# Detectar durante el build dependencias del sistema que Open3D carga al arrancar.
+RUN python -c "import open3d"
 
 # 3. Instalar paquetes especializados para aceleración 3D
 # utils3d

@@ -52,8 +52,8 @@ RUN pip install --no-cache-dir \
     runpod \
     huggingface_hub
 
-# Detectar durante el build dependencias del sistema que Open3D carga al arrancar.
-RUN python -c "import open3d"
+# Verificar la biblioteca que faltaba al cargar Open3D en RunPod.
+RUN python -c "import ctypes; ctypes.CDLL('libusb-1.0.so.0')"
 
 # 3. Instalar paquetes especializados para aceleración 3D
 # utils3d

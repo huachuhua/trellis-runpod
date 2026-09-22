@@ -11,6 +11,9 @@ ENV PYTHONUNBUFFERED=1 \
 
 WORKDIR /app
 
+# Open3D 0.20 requiere GLIBCXX_3.4.30; actualizar la biblioteca de Conda.
+RUN conda install -y -c conda-forge "libstdcxx-ng>=12" && conda clean -afy
+
 # 1. Dependencias del sistema (compiladores, librerías gráficas y de malla)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
@@ -48,12 +51,9 @@ RUN pip install --no-cache-dir \
     pyvista \
     pymeshfix \
     igraph \
-    transformers \
+    "transformers==4.46.3" \
     runpod \
     huggingface_hub
-
-# Verificar la biblioteca que faltaba al cargar Open3D en RunPod.
-RUN python -c "import ctypes; ctypes.CDLL('libusb-1.0.so.0')"
 
 # 3. Instalar paquetes especializados para aceleración 3D
 # utils3d
@@ -87,6 +87,9 @@ RUN git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-spl
 RUN git clone --depth 1 https://github.com/microsoft/TRELLIS.git /app/trellis_repo && \
     cp -r /app/trellis_repo/trellis /app/trellis && \
     rm -rf /app/trellis_repo
+
+# Comprobar que las dependencias nativas y Python cargan antes de descargar pesos.
+RUN python -c "import open3d; from trellis.pipelines import TrellisImageTo3DPipeline"
 
 # 5. Pre-descargar pesos oficiales de TRELLIS desde Hugging Face
 RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='microsoft/TRELLIS-image-large')"

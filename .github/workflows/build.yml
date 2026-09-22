@@ -20,6 +20,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Verify output transport
+        run: python3 -B -m unittest test_result_transport.py
+
       # Liberar ~35 GB de paquetes innecesarios en el runner de GitHub
       - name: Free Runner Disk Space
         run: |

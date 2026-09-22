@@ -93,6 +93,6 @@ RUN git clone --depth 1 --recurse-submodules https://github.com/microsoft/TRELLI
 RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='microsoft/TRELLIS-image-large')"
 
 # 6. Copiar el handler de RunPod
-COPY handler.py .
+COPY handler.py result_transport.py ./
 
 CMD ["python", "-u", "handler.py"]

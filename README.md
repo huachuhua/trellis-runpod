@@ -29,3 +29,17 @@ Este worker empaqueta **Microsoft TRELLIS** (`microsoft/TRELLIS-image-large`) en
 
 3. **Configurar en Second Brain**:
    - En la configuración de SB-176, añade el ID del nuevo endpoint en el campo `RunPod TRELLIS Endpoint ID`.
+
+## Transferencia de resultados
+
+El backend solicita `output_compression: "gzip"` para recibir `ply_gzip_base64` y
+`glb_gzip_base64`. Se descomprimen en Second Brain antes de guardar los archivos;
+la compresión no altera la malla ni los splats. Las solicitudes sin esa opción
+siguen usando los campos base64 originales.
+
+El worker registra los tamaños y rechaza de forma explícita salidas que superan
+el límite preventivo de 10 MiB menos 64 KiB, en lugar de entregar un JSON demasiado
+grande. Esto requiere actualizar también `backend.mjs` de SB-176 y reiniciar
+manualmente Second Brain para activar la transferencia comprimida.
+
+Prueba local sin GPU: `python3 -B -m unittest test_result_transport.py`.

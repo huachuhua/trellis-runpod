@@ -18,6 +18,7 @@ import torch
 import runpod
 from PIL import Image
 from huggingface_hub import snapshot_download
+from result_transport import build_model_output
 
 from trellis.pipelines import TrellisImageTo3DPipeline
 from trellis.utils import postprocessing_utils
@@ -160,15 +161,10 @@ def handler(job):
             if os.path.exists(tmp_glb_path):
                 os.unlink(tmp_glb_path)
 
-        return {
-            "status": "success",
-            "engine": "trellis",
-            "pbr": True,
-            "ply_base64": base64.b64encode(ply_bytes).decode("utf-8") if ply_bytes else None,
-            "glb_base64": base64.b64encode(glb_bytes).decode("utf-8") if glb_bytes else None,
-            "ply_size_bytes": len(ply_bytes) if ply_bytes else 0,
-            "glb_size_bytes": len(glb_bytes) if glb_bytes else 0
-        }
+        return build_model_output(
+            ply_bytes, glb_bytes,
+            compression=job_input.get("output_compression", "none"),
+        )
 
     except Exception as e:
         traceback.print_exc()

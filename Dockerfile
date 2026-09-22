@@ -84,8 +84,9 @@ RUN git clone https://github.com/autonomousvision/mip-splatting.git /tmp/mip-spl
     rm -rf /tmp/mip-splatting
 
 # 4. Clonar el repositorio oficial de Microsoft TRELLIS
-RUN git clone --depth 1 https://github.com/microsoft/TRELLIS.git /app/trellis_repo && \
+RUN git clone --depth 1 --recurse-submodules https://github.com/microsoft/TRELLIS.git /app/trellis_repo && \
     cp -r /app/trellis_repo/trellis /app/trellis && \
+    test -f /app/trellis/representations/mesh/flexicubes/flexicubes.py && \
     rm -rf /app/trellis_repo
 
 # 5. Pre-descargar pesos oficiales de TRELLIS desde Hugging Face

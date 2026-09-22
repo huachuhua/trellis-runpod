@@ -17,9 +17,25 @@ import traceback
 import torch
 import runpod
 from PIL import Image
+from huggingface_hub import snapshot_download
 
 from trellis.pipelines import TrellisImageTo3DPipeline
 from trellis.utils import postprocessing_utils
+from trellis import models as trellis_models
+
+# TRELLIS captura el primer fallo de carga y prueba una ruta alternativa.
+# Registrar el error original para diagnosticar checkpoints y dependencias.
+_original_model_loader = trellis_models.from_pretrained
+
+def _load_model_with_diagnostics(model_path, *args, **kwargs):
+    try:
+        return _original_model_loader(model_path, *args, **kwargs)
+    except Exception:
+        print(f"❌ Falló la carga del checkpoint: {model_path}", flush=True)
+        traceback.print_exc()
+        raise
+
+trellis_models.from_pretrained = _load_model_with_diagnostics
 
 print("⚡ Configurando worker Serverless para Microsoft TRELLIS...")
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -47,7 +63,8 @@ def get_pipeline():
                 print(f"   VRAM Total: {torch.cuda.get_device_properties(0).total_memory / (1024**3):.2f} GB")
                 torch.cuda.empty_cache()
 
-            pipe = TrellisImageTo3DPipeline.from_pretrained("microsoft/TRELLIS-image-large")
+            model_path = snapshot_download(repo_id="microsoft/TRELLIS-image-large", local_files_only=True)
+            pipe = TrellisImageTo3DPipeline.from_pretrained(model_path)
             if device_name == "cuda":
                 pipe.cuda()
 

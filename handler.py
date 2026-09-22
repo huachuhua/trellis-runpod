@@ -18,7 +18,7 @@ import torch
 import runpod
 from PIL import Image
 from huggingface_hub import snapshot_download
-from result_transport import build_model_output
+from result_transport import stream_model_output
 
 from trellis.pipelines import TrellisImageTo3DPipeline
 from trellis.utils import postprocessing_utils
@@ -100,17 +100,28 @@ def handler(job):
     }
     """
     job_input = job.get("input", {})
+    if "transport_probe_bytes" in job_input:
+        size = int(job_input["transport_probe_bytes"])
+        if not 1 <= size <= 80 * 1024 * 1024:
+            raise ValueError("Tamaño de prueba de transporte inválido")
+        yield from stream_model_output(os.urandom(size), b"glTF-transport-probe")
+        return
+    if job_input.get("output_transport") != "trellis-files-v1":
+        yield {"error": "Actualiza y reinicia manualmente el backend de la app para recibir modelos por fragmentos."}
+        return
     image_raw = job_input.get("image")
     seed = int(job_input.get("seed", 42))
     simplify = float(job_input.get("simplify", 0.95))
     texture_size = int(job_input.get("texture_size", 1024))
 
     if not image_raw:
-        return {"error": "No se proporcionó el parámetro 'image' en el input."}
+        yield {"error": "No se proporcionó el parámetro 'image' en el input."}
+        return
 
     pipe, err = get_pipeline()
     if pipe is None:
-        return {"error": f"El pipeline de TRELLIS no pudo inicializarse: {err}"}
+        yield {"error": f"El pipeline de TRELLIS no pudo inicializarse: {err}"}
+        return
 
     try:
         # Decodificar imagen
@@ -161,16 +172,13 @@ def handler(job):
             if os.path.exists(tmp_glb_path):
                 os.unlink(tmp_glb_path)
 
-        return build_model_output(
-            ply_bytes, glb_bytes,
-            compression=job_input.get("output_compression", "none"),
-        )
+        yield from stream_model_output(ply_bytes, glb_bytes)
 
     except Exception as e:
         traceback.print_exc()
         print(f"❌ Error durante la inferencia de TRELLIS: {str(e)}")
-        return {"error": str(e)}
+        yield {"error": str(e)}
 
 
 if __name__ == "__main__":
-    runpod.serverless.start({"handler": handler})
+    runpod.serverless.start({"handler": handler, "return_aggregate_stream": False})

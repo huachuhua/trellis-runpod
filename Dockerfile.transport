@@ -1,0 +1,4 @@
+FROM ghcr.io/huachuhua/trellis-runpod@sha256:85d6067f5d92a2bf4d1f84c08c2c8610982bd1d2ace877c82b40af08be91eec4
+WORKDIR /app
+COPY handler.py result_transport.py ./
+CMD ["python", "-u", "handler.py"]

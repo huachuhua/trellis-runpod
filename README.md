@@ -43,3 +43,25 @@ grande. Esto requiere actualizar también `backend.mjs` de SB-176 y reiniciar
 manualmente Second Brain para activar la transferencia comprimida.
 
 Prueba local sin GPU: `python3 -B -m unittest test_result_transport.py`.
+
+
+## Transferencia de modelos grandes (trellis-files-v1)
+
+El handler ahora es un generador: `/stream/{jobId}` entrega un manifiesto con
+SHA-256 y tamaños, fragmentos gzip de 256 KiB de datos originales y un evento
+`complete`. `return_aggregate_stream` está desactivado: `/status` NO contiene
+los archivos. La app debe leer `/stream` mediante un único consumidor por
+trabajo, guardar los fragmentos y comprobar ambos hashes antes de publicar el
+modelo. Cada evento es inferior a 1 MB, independientemente del tamaño total.
+No se reducen resolución, geometría ni textura. El receptor local admite hasta
+1 GiB por archivo; requiere espacio para fragmentos y archivos reconstruidos.
+RunPod conserva los resultados temporalmente: la app debe recibirlos antes de
+su caducidad. Una respuesta de red perdida después de drenar `/stream` puede
+requerir repetir el trabajo; el checksum impide guardar archivos incompletos.
+
+Actualizar el backend y reiniciarlo MANUALMENTE antes de generar con este worker.
+`Dockerfile.transport` reutiliza la imagen de dependencias ya validada; el
+Dockerfile completo queda disponible para recompilaciones de dependencias.
+
+Diagnóstico sin inferencia: `input.transport_probe_bytes` (1–80 MiB) genera datos
+aleatorios y los transfiere mediante el mismo protocolo. No crea un modelo.
